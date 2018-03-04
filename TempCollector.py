@@ -4,9 +4,10 @@ import Adafruit_DHT
 import MySQLdb
 import time
 import DatabaseCollection
+import BH1750
 from datetime import datetime
 
-class TemperatureAndHumidity():
+class SensorCollector():
     def __init__(self):
             pass
     def recordTempAndHumid(self):
@@ -24,6 +25,11 @@ class TemperatureAndHumidity():
     def getTemperature(self):
         return temperature
 
+
+    def getLightIndex(self):
+        lightValue = BH1750.BH1750DCollector()
+        return lightValue.readLight()
+
     def getTime(self):
         timeNow = datetime.now()
         return timeNow.strftime('%H:%M:%S')
@@ -34,14 +40,15 @@ class TemperatureAndHumidity():
             self.recordTempAndHumid()
             temp = DatabaseCollection.DataCollection()
             humid = DatabaseCollection.DataCollection()
-            humid.sendValuesToDB("Light","lightvalues","addedwhen",self.getHumidity(),self.getTime())
+            light = DatabaseCollection.DataCollection()
+
+            light.sendValuesToDB("Light","lightvalues","addedwhen",self.getLightIndex(),self.getTime())
             temp.sendValuesToDB("Temperature", "TemperatureValues","addedwhen",self.getTemperature(),self.getTime())
-            time.sleep(2)
+            humid.sendValuesToDB("Humidity", "HumidityValues", "addedwhen", self.getHumidity(), self.getTime())
+            time.sleep(1)
 
 
 
 if __name__ == '__main__':
-    Test1 = TemperatureAndHumidity()
-    #Test1.recordTempAndHumid()
+    Test1 = SensorCollector()
     Test1.getConstantStreamOfData()
-    #print 'Humidity: ',Test1.getHumidity()
