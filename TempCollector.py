@@ -34,6 +34,10 @@ class SensorCollector():
         timeNow = datetime.now()
         return timeNow.strftime('%H:%M:%S')
 
+    def disconnectDB(self):
+        dc = DatabaseCollection.DataCollection()
+        dc.disconnectFromDB()
+
     def getConstantStreamOfData(self):
         while True:
             #Code To Send Data To Database

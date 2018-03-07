@@ -38,7 +38,12 @@ import cwiid                                                            # Import
 
 import time                                                             # Import the 'time' module
 
-import random
+import random                                                           # Import random module
+
+import TempCollector                                                    # Import Sensor Collector Class
+
+import threading
+from threading import Thread
 
 GPIO.setmode (GPIO.BCM)                                                 # Set the GPIO mode to BCM numbering
 
@@ -151,13 +156,15 @@ def automatic (buttons):
             time.sleep (0.5)                                            # for half a second
             movement = motor_drive (stop)                               # Then stop for half a second
             time.sleep (0.5)
-
         movement = motor_drive (direction)                              # Continue moving in a forwards direction
         buttons = wii.state['buttons']                                  # Get the button data from the Wii remote
+
         if (buttons - cwiid.BTN_PLUS == 0):
+            #sensor.disconnectDB()
             return()
 
     #return ()                                                           # Exit if the 'A' button isn't being pressed
+
 
 
 # *******************************************************************
@@ -294,6 +301,7 @@ wii.rumble = 1                                                          # Briefl
 time.sleep(0.2)
 wii.rumble = 0
 wii.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC                            # Report button and accelerometer data
+sensor = TempCollector.SensorCollector()
 
 print ("\n\n\n\nThe Wii Remote is now connected...\n")                  # Print a few instructions
 print ("Use the direction pad to steer the car\n")
@@ -321,6 +329,7 @@ while True:                                                             # Begin 
     if (buttons - cwiid.BTN_A == 0):                                    # If ONLY the 'A' button is pressed
         movement = automatic (buttons)                                  # then run autonomously
 
+        sensor.getConstantStreamOfData()
 
 
 # *******************************************************************

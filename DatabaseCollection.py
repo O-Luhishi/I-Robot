@@ -12,6 +12,9 @@ class DataCollection():
                   db="irobot")
         x = conn.cursor()
 
+    def disconnectFromDB(self):
+        conn.close()
+
     def sendValuesToDB(self,table,coloumnOne,coloumnTwo,value,timeOfValue):
         self.connectToDB()
         try:
@@ -23,7 +26,7 @@ class DataCollection():
             query = "INSERT INTO " + table_name +"("+coloumn_One+", "+coloumn_Two+")"+" VALUES (%s, %s)"
             x.execute(query, (values, timeValue))
             conn.commit()
-            print 'done'
+            #print 'done'
         except:
             print 'not done'
             conn.rollback()
