@@ -9,7 +9,9 @@ from datetime import datetime
 
 class SensorCollector():
     def __init__(self):
-            pass
+            global exit
+            exit = False
+
     def recordTempAndHumid(self):
         global humidity, temperature
         humidity, temperature = Adafruit_DHT.read_retry(11,4)
@@ -34,12 +36,21 @@ class SensorCollector():
         timeNow = datetime.now()
         return timeNow.strftime('%H:%M:%S')
 
+    def flagExit(self):
+        exit = True
+
     def disconnectDB(self):
         dc = DatabaseCollection.DataCollection()
         dc.disconnectFromDB()
+        exit()
+
+    def getflagValue(self):
+        return exit
+
 
     def getConstantStreamOfData(self):
         while True:
+            self.getflagValue()
             #Code To Send Data To Database
             self.recordTempAndHumid()
             temp = DatabaseCollection.DataCollection()
@@ -49,7 +60,10 @@ class SensorCollector():
             light.sendValuesToDB("Light","lightvalues","addedwhen",self.getLightIndex(),self.getTime())
             temp.sendValuesToDB("Temperature", "TemperatureValues","addedwhen",self.getTemperature(),self.getTime())
             humid.sendValuesToDB("Humidity", "HumidityValues", "addedwhen", self.getHumidity(), self.getTime())
-            time.sleep(1)
+            time.sleep(2)
+            if (exit):
+                print 'broken'
+                break
 
 
 

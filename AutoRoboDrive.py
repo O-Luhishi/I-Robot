@@ -45,6 +45,8 @@ import TempCollector                                                    # Import
 import threading
 from threading import Thread
 
+from multiprocessing import Process
+
 GPIO.setmode (GPIO.BCM)                                                 # Set the GPIO mode to BCM numbering
 
 
@@ -144,6 +146,12 @@ def automatic (buttons):
 
     #while (buttons - cwiid.BTN_A == 0):                                 # Run autonomously only while 'A' pressed
     while (autoDrive == True):
+        buttons = wii.state['buttons']                                  # Get the button data from the Wii remote
+        if (buttons - cwiid.BTN_PLUS == 0):
+            print 'button'
+            moveThread.terminate()
+            terminate = exit_program()
+            return()
         direction = fwd                                                 # Set the initial direction to forwards
         distance = get_distance ()                                      # Check the distance
         if direction == fwd and distance < 15:                          # If the distance is less than 15cm then
@@ -157,13 +165,15 @@ def automatic (buttons):
             movement = motor_drive (stop)                               # Then stop for half a second
             time.sleep (0.5)
         movement = motor_drive (direction)                              # Continue moving in a forwards direction
-        buttons = wii.state['buttons']                                  # Get the button data from the Wii remote
 
-        if (buttons - cwiid.BTN_PLUS == 0):
-            #sensor.disconnectDB()
-            return()
 
-    #return ()                                                           # Exit if the 'A' button isn't being pressed
+
+
+def autonomous():
+    movement = automatic (buttons)                                  # run autonomously
+
+def updateButton(buttons):
+    buttons = wii.state[buttons]                                  # Get the button data from the Wii remote
 
 
 
@@ -296,12 +306,13 @@ while True:                                                             # Start 
 # *******************************************************************
 # *        SUCCESSFULLY CONNECTED TO THE Wii REMOTE CONTROL         *
 # *******************************************************************
-
+global buttons
 wii.rumble = 1                                                          # Briefly vibrate the Wii remote
 time.sleep(0.2)
 wii.rumble = 0
 wii.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC                            # Report button and accelerometer data
 sensor = TempCollector.SensorCollector()
+
 
 print ("\n\n\n\nThe Wii Remote is now connected...\n")                  # Print a few instructions
 print ("Use the direction pad to steer the car\n")
@@ -327,9 +338,12 @@ while True:                                                             # Begin 
         terminate = exit_program()                                      # And quit the program
 
     if (buttons - cwiid.BTN_A == 0):                                    # If ONLY the 'A' button is pressed
-        movement = automatic (buttons)                                  # then run autonomously
-
-        sensor.getConstantStreamOfData()
+        moveThread = Process(target = autonomous)
+        moveThread.start()
+        sensorThread = Process(target = sensor.getConstantStreamOfData())
+        sensorThread.start()
+        moveThread.join()
+        sensorThread.join()
 
 
 # *******************************************************************
